@@ -1,7 +1,7 @@
 # Discord Wrapped
 
 Discord Wrapped is a bot that generates personalized activity summaries for Discord users, similar to Spotify Wrapped. It analyzes user activity and creates beautiful visualizations of their Discord usage patterns.
-
+![enter image description here](https://raw.githubusercontent.com/callbacked/discord-wrapped/refs/heads/main/screenshots/showcase.png)
 ## Features
 
 - Web dashboard for viewing statistics and customizable cards
