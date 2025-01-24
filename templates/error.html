@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Discord Wrapped</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --radius: 0.5rem;
+            --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+
+        body {
+            font-family: var(--font-sans);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 180px;
+            background-color: white;
+            color: black;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .animated-text-fill {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        pre {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background-color: rgb(15 15 15 / 0.8);
+            border: 1px solid rgb(255 255 255 / 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-black text-white">
+    <div class="max-w-2xl w-full mx-4">
+        <div class="bg-zinc-950/50 backdrop-blur-xl border border-zinc-800/50 rounded-lg p-8 text-center shadow-2xl">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2 text-white">{{ error }}</h1>
+            <p class="text-zinc-400 mb-6">{{ message }}</p>
+            
+            <!-- Setup Instructions -->
+            <div class="mt-8 mb-8 p-6 bg-zinc-900/50 border border-zinc-800/50 rounded-lg text-left">
+                <h2 class="text-lg font-semibold mb-4 text-white flex items-center gap-2">
+                    <span>🔧</span>
+                    <span>Admin Setup Instructions</span>
+                </h2>
+                <ol class="list-decimal list-inside space-y-3 text-sm text-zinc-400">
+                    <li>Find your Discord User ID (Enable Developer Mode → Right-click your name → Copy ID)</li>
+                    <li>Open your <code class="bg-zinc-900 px-2 py-1 rounded text-white border border-zinc-800">.env</code> or <code class="bg-zinc-900 px-2 py-1 rounded text-white border border-zinc-800">docker-compose.yml</code> file</li>
+                    <li>Add your ID to <code class="bg-zinc-900 px-2 py-1 rounded text-white border border-zinc-800">ADMIN_IDS</code>:
+                        <pre class="mt-2 p-3 rounded-md text-white"><code>ADMIN_IDS=your_discord_id</code></pre>
+                    </li>
+                    <li>For multiple admins, separate IDs with commas:
+                        <pre class="mt-2 p-3 rounded-md text-white"><code>ADMIN_IDS=123456789,987654321</code></pre>
+                    </li>
+                    <li>Restart the bot for changes to take effect</li>
+                </ol>
+            </div>
+
+            <a href="{{ url_for('login') }}" class="btn-primary px-6 py-3 text-sm">
+                <span class="animated-text-fill">Back to Login</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 -z-10 h-full w-full bg-black bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+</body>
+</html> 

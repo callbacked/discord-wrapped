@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/card-editor.js') }}"></script>
+    <style>
+        /* oh boy this is a ton of code remind me to break this up (never)*/
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 0.75rem;
+            --button-text-fill: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 240 10% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 240 5.9% 10%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --input: 240 3.7% 15.9%;
+            --ring: 240 4.9% 83.9%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .navbar {
+            background-color: hsl(var(--background));
+            border-bottom: 1px solid hsl(var(--border));
+            backdrop-filter: blur(12px);
+        }
+
+        .card {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.15);
+        }
+
+        .card:hover::after {
+            transform: translateX(100%);
+        }
+
+        .input-field {
+            background-color: transparent;
+            border: 1px solid hsl(var(--input));
+            border-radius: var(--radius);
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+        }
+
+        .tab-button {
+            background-color: transparent;
+            border-radius: var(--radius);
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .tab-button.active {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+        }
+
+        .theme-toggle {
+            background-color: hsl(var(--secondary));
+            border-radius: var(--radius);
+            color: hsl(var(--secondary-foreground));
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background-color: hsl(var(--background));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.2);
+            color: hsl(var(--foreground));
+            max-width: 24rem;
+            padding: 0.75rem 1rem;
+            transform-origin: bottom right;
+            animation: toastEnter 0.2s ease forwards;
+        }
+
+        .toast.success {
+            border-left: 4px solid hsl(142.1 76.2% 36.3%);
+        }
+
+        .toast.error {
+            border-left: 4px solid hsl(346.8 77.2% 49.8%);
+        }
+
+        @keyframes toastEnter {
+            from {
+                opacity: 0;
+                transform: translateX(100%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes toastExit {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%) scale(0.8);
+            }
+        }
+
+        .animated-text-fill {
+            position: relative;
+            background-clip: text;
+            -webkit-background-clip: text;
+            transition: color var(--button-text-fill);
+        }
+
+        .animated-text-fill::before {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            overflow: hidden;
+            transition: width var(--button-text-fill);
+            white-space: nowrap;
+        }
+
+        .animated-text-fill:hover::before {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary .animated-text-fill::before {
+            color: hsl(var(--accent));
+        }
+        .btn-primary .animated-text-fill:hover {
+            color: transparent;
+        }
+
+        .btn-white {
+            background-color: white;
+            color: hsl(240 10% 3.9%); 
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-white .animated-text-fill::before {
+            color: hsl(240 3.8% 46.1%); 
+            font-weight: 500;
+        }
+        .btn-white .animated-text-fill:hover {
+            color: transparent;
+        }
+
+        .btn-white:hover {
+            background-color: white !important;
+        }
+
+        .btn-secondary {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-secondary .animated-text-fill::before {
+            color: hsl(240 3.8% 46.1%);
+            font-weight: 500;
+        }
+        .btn-secondary .animated-text-fill:hover {
+            color: transparent;
+        }
+
+        .btn-secondary:hover {
+            background-color: hsl(var(--secondary)) !important;
+        }
+
+        .btn-destructive {
+            background-color: hsl(var(--destructive));
+            color: hsl(var(--destructive-foreground));
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-destructive .animated-text-fill::before {
+            color: hsl(240 3.8% 46.1%); 
+            font-weight: 500;
+        }
+        .btn-destructive .animated-text-fill:hover {
+            color: transparent;
+        }
+
+        .btn-destructive:hover {
+            background-color: hsl(var(--destructive)) !important;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px hsl(var(--primary) / 0.2),
+                         0 0 20px hsl(var(--primary) / 0.1),
+                         0 0 30px hsl(var(--primary) / 0.05);
+            transition: text-shadow 0.3s ease;
+        }
+
+        .glow-text-blue {
+            color: hsl(221 83% 53%);
+            text-shadow: 0 0 10px hsl(221 83% 53% / 0.2),
+                         0 0 20px hsl(221 83% 53% / 0.1),
+                         0 0 30px hsl(221 83% 53% / 0.05);
+        }
+
+        .glow-text-green {
+            color: hsl(142 71% 45%);
+            text-shadow: 0 0 10px hsl(142 71% 45% / 0.2),
+                         0 0 20px hsl(142 71% 45% / 0.1),
+                         0 0 30px hsl(142 71% 45% / 0.05);
+        }
+
+        .glow-text-purple {
+            color: hsl(262 83% 58%);
+            text-shadow: 0 0 10px hsl(262 83% 58% / 0.2),
+                         0 0 20px hsl(262 83% 58% / 0.1),
+                         0 0 30px hsl(262 83% 58% / 0.05);
+        }
+
+        .glow-text-orange {
+            color: hsl(31 97% 44%);
+            text-shadow: 0 0 10px hsl(31 97% 44% / 0.2),
+                         0 0 20px hsl(31 97% 44% / 0.1),
+                         0 0 30px hsl(31 97% 44% / 0.05);
+        }
+
+        .min-h-screen {
+            position: relative;
+            isolation: isolate;
+        }
+
+        .min-h-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at center, transparent 30%, hsl(var(--background))),
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 11px),
+                repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 11px);
+            background-size: 100% 100%, 16px 16px, 16px 16px;
+            animation: patternMove 30s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        @keyframes patternMove {
+            from {
+                background-position: center, 0 0, 0 0;
+            }
+            to {
+                background-position: center, 32px 32px, 32px 32px;
+            }
+        }
+
+        * {
+            transition-property: background-color, border-color, color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+
+        .input-field:hover {
+            border-color: hsl(var(--ring) / 0.5);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            min-width: 100px; 
+            width: auto;
+        }
+
+        .btn-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background-color: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+            transform: none !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 180px; 
+        }
+
+        .animated-text-fill {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        @keyframes slideOutUp {
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .text-changing {
+            animation: slideOutUp 0.3s forwards;
+        }
+
+        .text-changed {
+            animation: slideInDown 0.3s forwards;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: hsl(var(--secondary));
+            border-radius: 6px;
+            outline: none;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: hsl(var(--primary));
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid hsl(var(--background));
+            box-shadow: 0 0 0 1px hsl(var(--primary));
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: hsl(var(--primary));
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid hsl(var(--background));
+            box-shadow: 0 0 0 1px hsl(var(--primary));
+        }
+
+        input[type="range"]:hover::-webkit-slider-thumb {
+            transform: scale(1.1);
+            background: hsl(var(--primary));
+        }
+
+        input[type="range"]:hover::-moz-range-thumb {
+            transform: scale(1.1);
+            background: hsl(var(--primary));
+        }
+
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(0.9);
+        }
+
+        input[type="range"]:active::-moz-range-thumb {
+            transform: scale(0.9);
+        }
+
+        input[type="range"] {
+            background: linear-gradient(
+                to right,
+                hsl(var(--primary)) var(--range-progress, 0%),
+                hsl(var(--secondary)) var(--range-progress, 0%)
+            );
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: var(--radius);
+            padding: 0;
+        }
+
+        input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: var(--radius);
+            padding: 0;
+        }
+
+        .stat-color-group input[type="color"] {
+            height: 38px;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .stat-color-group input[type="color"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .stat-color-group input[type="color"]:active {
+            transform: translateY(0);
+        }
+
+        .text-color-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .text-color-container input[type="color"] {
+            height: 38px;
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .text-color-container input[type="text"] {
+            flex: 1;
+            height: 38px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="navbar fixed top-0 left-0 right-0 z-50 px-4 py-3">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-semibold tracking-tight">Discord Wrapped Dashboard</h1>
+            <div class="flex items-center space-x-6">
+                <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+                    <svg id="theme-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+                <a href="{{ url_for('add_bot') }}" class="btn btn-primary inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow h-9 px-4 py-2 {% if bot_in_server %}btn-disabled{% endif %}" {% if bot_in_server %}onclick="return false;"{% endif %}>
+                    <span class="animated-text-fill" data-text="{% if bot_in_server %}Bot Already in Server{% else %}Add Bot{% endif %}">{% if bot_in_server %}Bot Already in Server{% else %}Add Bot{% endif %}</span>
+                </a>
+                <span class="text-sm text-muted-foreground">{{ user.username }}</span>
+                <a href="/" class="text-sm hover:text-primary">Home</a>
+                <a href="{{ url_for('logout') }}" class="text-sm text-destructive hover:text-destructive/80">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container mx-auto px-4 pt-20">
+        <div id="toast-container"></div>
+
+        <!-- Server Selection -->
+        <div class="mb-8">
+            <label for="server-select" class="block text-sm font-medium mb-2">Select Server</label>
+            <select id="server-select" class="input-field w-full border border-white" onchange="selectServer(this.value)">
+                {% for guild in guilds %}
+                <option value="{{ guild.id }}" {% if guild.id == selected_guild_id %}selected{% endif %}>{{ guild.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="inline-flex p-1 bg-muted rounded-lg mb-8">
+            <button class="tab-button active px-4 py-2" onclick="switchTab('overview')">Overview</button>
+            <button class="tab-button px-4 py-2" onclick="switchTab('customize')">Customize Traits</button>
+            <button class="tab-button px-4 py-2" onclick="switchTab('card-editor')">Card Editor</button>
+        </div>
+
+        <!-- Overview Section -->
+        <div id="overview-tab" class="space-y-8">
+            <!-- Server Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-2">Total Messages</h3>
+                    <p id="total-messages" class="text-3xl font-bold glow-text-blue">-</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-2">Total Reactions</h3>
+                    <p id="total-reactions" class="text-3xl font-bold glow-text-green">-</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-2">Voice Time</h3>
+                    <p id="total-voice-time" class="text-3xl font-bold glow-text-purple">-</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-2">Active Users</h3>
+                    <p id="active-users" class="text-3xl font-bold glow-text-orange">-</p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-4">Activity Distribution</h3>
+                    <div class="h-[300px]">
+                        <canvas id="activity-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-sm font-medium text-muted-foreground mb-4">Top Users</h3>
+                    <div class="h-[300px]">
+                        <canvas id="users-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mention Stats -->
+            <div class="card p-6">
+                <h3 class="text-sm font-medium text-muted-foreground mb-4">Mention Statistics</h3>
+                <div class="h-[300px]">
+                    <canvas id="mentions-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customize Traits Section -->
+        <div id="customize-tab" class="hidden">
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold mb-6">Customize Personality Traits</h2>
+                
+                <!-- Action Buttons -->
+                <div class="mb-6 flex space-x-4">
+                    <button id="reset-traits" class="btn-destructive inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 py-2" title="Reset all traits to default values">
+                        <span class="animated-text-fill" data-text="Reset All Traits">Reset All Traits</span>
+                    </button>
+                    <button id="create-trait" class="btn-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-secondary-foreground shadow hover:bg-white/90 h-9 px-4 py-2" title="Create a new custom trait">
+                        <span class="animated-text-fill" data-text="Create New Trait">Create New Trait</span>
+                    </button>
+                </div>
+
+                <!-- Trait Type Dropdown -->
+                <div class="mb-6">
+                    <label for="trait-type" class="block text-sm font-medium text-foreground mb-2">Trait Type:</label>
+                    <select id="trait-type" class="input-field w-full p-2" title="Select the type of trait you want to customize">
+                        <option value="primary">Primary Traits</option>
+                        <option value="secondary">Secondary Traits</option>
+                    </select>
+                </div>
+
+                <!-- Create Trait Form (Hidden) -->
+                <div id="create-trait-form" class="hidden mb-6 card p-6">
+                    <h3 class="text-xl font-semibold mb-4">Create New Trait</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="new-trait-name" class="block text-sm font-medium text-foreground mb-2">Trait Name:</label>
+                            <input type="text" id="new-trait-name" class="input-field w-full p-2" placeholder="Enter trait name">
+                        </div>
+                        <div>
+                            <label for="new-trait-description" class="block text-sm font-medium text-foreground mb-2">Trait Description:</label>
+                            <textarea id="new-trait-description" class="input-field w-full p-2" placeholder="Enter a description for your trait" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label for="new-trait-type" class="block text-sm font-medium text-foreground mb-2">Trait Type:</label>
+                            <select id="new-trait-type" class="input-field w-full p-2">
+                                <option value="primary">Primary Trait</option>
+                                <option value="secondary">Secondary Trait</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Threshold inputs (same as edit form) -->
+                            <div>
+                                <label for="new-message-ratio" class="block text-sm font-medium text-foreground mb-2">Message Ratio:</label>
+                                <input type="number" id="new-message-ratio" step="0.01" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-message-threshold" class="block text-sm font-medium text-foreground mb-2">Message Threshold:</label>
+                                <input type="number" id="new-message-threshold" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-reaction-threshold" class="block text-sm font-medium text-foreground mb-2">Reaction Threshold:</label>
+                                <input type="number" id="new-reaction-threshold" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-voice-ratio" class="block text-sm font-medium text-foreground mb-2">Voice Ratio:</label>
+                                <input type="number" id="new-voice-ratio" step="0.01" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-voice-threshold" class="block text-sm font-medium text-foreground mb-2">Voice Threshold:</label>
+                                <input type="number" id="new-voice-threshold" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-stream-threshold" class="block text-sm font-medium text-foreground mb-2">Stream Threshold:</label>
+                                <input type="number" id="new-stream-threshold" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-deafen-ratio" class="block text-sm font-medium text-foreground mb-2">Deafen Ratio:</label>
+                                <input type="number" id="new-deafen-ratio" step="0.01" class="input-field w-full p-2">
+                            </div>
+                            <div>
+                                <label for="new-deafen-threshold" class="block text-sm font-medium text-foreground mb-2">Deafen Threshold:</label>
+                                <input type="number" id="new-deafen-threshold" class="input-field w-full p-2">
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button onclick="createTrait()" class="btn-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-white text-secondary-foreground shadow hover:bg-white/90 h-9 px-4 py-2">
+                                <span class="animated-text-fill" data-text="Create Trait">Create Trait</span>
+                            </button>
+                            <button onclick="toggleCreateForm(false)" class="btn-secondary inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2">
+                                <span class="animated-text-fill" data-text="Cancel">Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trait Name Dropdown -->
+                <div class="mb-6">
+                    <label for="trait-name" class="block text-sm font-medium text-foreground mb-2">Trait Name:</label>
+                    <select id="trait-name" class="input-field w-full p-2" title="Select the trait you want to customize">
+                    </select>
+                    <p id="trait-description" class="text-sm text-gray-500 mt-1 italic">Select a trait to see its description</p>
+                </div>
+
+                <!-- New Name Input -->
+                <div class="mb-6">
+                    <label for="new-name" class="block text-sm font-medium text-foreground mb-2">New Name (optional):</label>
+                    <input type="text" id="new-name" placeholder="Enter new name" class="input-field w-full p-2" title="Optionally rename this trait">
+                    <p class="text-sm text-gray-500 mt-1">Give this trait a custom name (leave empty to keep current name)</p>
+                </div>
+
+                <!-- Description Input -->
+                <div class="mb-6">
+                    <label for="trait-description-input" class="block text-sm font-medium text-foreground mb-2">Description:</label>
+                    <textarea id="trait-description-input" class="input-field w-full p-2" rows="3" placeholder="Enter trait description"></textarea>
+                    <p class="text-sm text-gray-500 mt-1">Customize the trait's description</p>
+                </div>
+
+                <!-- Threshold Inputs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="message-ratio" class="block text-sm font-medium text-foreground mb-2">Message Ratio:</label>
+                        <input type="number" id="message-ratio" step="0.01" placeholder="Enter message ratio" class="input-field w-full p-2" title="The proportion of messages relative to server average">
+                        <p class="text-sm text-gray-500 mt-1">Ratio of user's messages compared to server average (e.g., 1.5 means 50% more than average)</p>
+                    </div>
+                    <div>
+                        <label for="message-threshold" class="block text-sm font-medium text-foreground mb-2">Message Threshold:</label>
+                        <input type="number" id="message-threshold" placeholder="Enter message threshold" class="input-field w-full p-2" title="Minimum number of messages required">
+                        <p class="text-sm text-gray-500 mt-1">Minimum number of messages needed to qualify for this trait</p>
+                    </div>
+                    <div>
+                        <label for="reaction-threshold" class="block text-sm font-medium text-foreground mb-2">Reaction Threshold:</label>
+                        <input type="number" id="reaction-threshold" placeholder="Enter reaction threshold" class="input-field w-full p-2" title="Minimum number of reactions given/received">
+                        <p class="text-sm text-gray-500 mt-1">Minimum number of reactions needed to qualify for this trait</p>
+                    </div>
+                    <div>
+                        <label for="voice-ratio" class="block text-sm font-medium text-foreground mb-2">Voice Ratio:</label>
+                        <input type="number" id="voice-ratio" step="0.01" placeholder="Enter voice ratio" class="input-field w-full p-2" title="The proportion of voice time relative to server average">
+                        <p class="text-sm text-gray-500 mt-1">Ratio of user's voice time compared to server average</p>
+                    </div>
+                    <div>
+                        <label for="voice-threshold" class="block text-sm font-medium text-foreground mb-2">Voice Threshold:</label>
+                        <input type="number" id="voice-threshold" placeholder="Enter voice threshold" class="input-field w-full p-2" title="Minimum minutes spent in voice channels">
+                        <p class="text-sm text-gray-500 mt-1">Minimum minutes in voice channels needed for this trait</p>
+                    </div>
+                    <div>
+                        <label for="stream-threshold" class="block text-sm font-medium text-foreground mb-2">Stream Threshold:</label>
+                        <input type="number" id="stream-threshold" placeholder="Enter stream threshold" class="input-field w-full p-2" title="Minimum number of streams started">
+                        <p class="text-sm text-gray-500 mt-1">Minimum number of streams needed to qualify for this trait</p>
+                    </div>
+                    <div>
+                        <label for="deafen-ratio" class="block text-sm font-medium text-foreground mb-2">Deafen Ratio:</label>
+                        <input type="number" id="deafen-ratio" step="0.01" placeholder="Enter deafen ratio" class="input-field w-full p-2" title="The proportion of time spent deafened relative to total voice time">
+                        <p class="text-sm text-gray-500 mt-1">Ratio of time spent deafened compared to total voice time</p>
+                    </div>
+                    <div>
+                        <label for="deafen-threshold" class="block text-sm font-medium text-foreground mb-2">Deafen Threshold:</label>
+                        <input type="number" id="deafen-threshold" placeholder="Enter deafen threshold" class="input-field w-full p-2" title="Minimum minutes spent deafened">
+                        <p class="text-sm text-gray-500 mt-1">Minimum minutes spent deafened needed for this trait</p>
+                    </div>
+                </div>
+
+                <!-- Update Button -->
+                <button onclick="updateTrait()" class="btn-primary w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9">
+                    <span class="animated-text-fill" data-text="Update Trait">Update Trait</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card Editor Section -->
+        <div id="card-editor-tab" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Preview Panel -->
+                <div class="card p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Live Preview</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="resetDefaults()" class="btn-secondary inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-secondary text-secondary-foreground shadow hover:bg-secondary/80 h-9 px-4">
+                                <span class="animated-text-fill" data-text="Reset">Reset</span>
+                            </button>
+                            <button onclick="applyChanges()" class="btn-primary inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4">
+                                <span class="animated-text-fill" data-text="Apply">Apply</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div id="card-preview" class="w-full h-auto bg-muted/5 rounded-lg overflow-hidden">
+                            <div class="text-center text-muted-foreground p-8">
+                                <p>Loading preview...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="space-y-6">
+                    <!-- Color Settings -->
+                    <div class="card p-6 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold">Colors</h3>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="use-individual-colors" class="rounded border-input">
+                                <label for="use-individual-colors" class="text-sm text-muted-foreground">Custom colors</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Color Palette Selection -->
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium">Color Palette</label>
+                            <select id="color-palette" class="input-field w-full">
+                                <option value="default">Default Discord</option>
+                                <option value="spotify">Spotify</option>
+                                <option value="pastel">Pastel</option>
+                                <option value="neon">Neon</option>
+                                <option value="monochrome">Monochrome</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Stat Colors Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Messages</label>
+                                <input type="color" id="messages-color" class="stat-color w-full" data-stat="messages">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Reactions</label>
+                                <input type="color" id="reactions-color" class="stat-color w-full" data-stat="reactions">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Voice</label>
+                                <input type="color" id="voice-color" class="stat-color w-full" data-stat="voice">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Deafen</label>
+                                <input type="color" id="deafen-color" class="stat-color w-full" data-stat="deafen">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Stream</label>
+                                <input type="color" id="stream-color" class="stat-color w-full" data-stat="stream">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Mentions</label>
+                                <input type="color" id="mentions-color" class="stat-color w-full" data-stat="mentions">
+                            </div>
+                            <div class="stat-color-group space-y-1.5">
+                                <label class="text-sm font-medium">Replies</label>
+                                <input type="color" id="replies-color" class="stat-color w-full" data-stat="replies">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">Text Color</label>
+                                <div class="text-color-container">
+                                    <input type="color" id="text-color" class="w-16">
+                                    <input type="text" id="text-color-hex" class="input-field" placeholder="#FFFFFF">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Animation & Font Settings -->
+                    <div class="card p-6 space-y-6">
+                        <h3 class="text-lg font-semibold">Animation & Text</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium">Animation Speed</label>
+                                    <span class="text-sm text-muted-foreground" id="animation-speed-value">1x</span>
+                                </div>
+                                <input type="range" id="animation-speed" min="0.1" max="2" step="0.1" value="1">
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium">Wave Intensity</label>
+                                    <span class="text-sm text-muted-foreground" id="wave-intensity-value">50%</span>
+                                </div>
+                                <input type="range" id="wave-intensity" min="0" max="1" step="0.1" value="0.5">
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium">Font Size</label>
+                                    <span class="text-sm text-muted-foreground" id="font-size-value">24px</span>
+                                </div>
+                                <input type="range" id="font-size" min="12" max="48" step="1" value="24">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let activityChart, usersChart, mentionsChart;
+
+        function getChartColors() {
+            const style = getComputedStyle(document.documentElement);
+            return {
+                primary: `hsl(${style.getPropertyValue('--primary')})`,
+                muted: `hsl(${style.getPropertyValue('--muted')})`,
+                mutedForeground: `hsl(${style.getPropertyValue('--muted-foreground')})`,
+                border: `hsl(${style.getPropertyValue('--border')})`,
+                background: `hsl(${style.getPropertyValue('--background')})`,
+                foreground: `hsl(${style.getPropertyValue('--foreground')})`,
+            };
+        }
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            size: 12,
+                        },
+                        color: getChartColors().mutedForeground,
+                    }
+                },
+                tooltip: {
+                    backgroundColor: getChartColors().background,
+                    titleColor: getChartColors().foreground,
+                    bodyColor: getChartColors().foreground,
+                    borderColor: getChartColors().border,
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'medium'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    displayColors: false
+                }
+            }
+        };
+
+        function createGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, color + '20'); 
+            return gradient;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+
+            if (tab === 'overview') {
+                document.getElementById('overview-tab').classList.remove('hidden');
+                document.getElementById('customize-tab').classList.add('hidden');
+                document.getElementById('card-editor-tab').classList.add('hidden');
+                loadServerStats();
+            } else if (tab === 'customize') {
+                document.getElementById('overview-tab').classList.add('hidden');
+                document.getElementById('customize-tab').classList.remove('hidden');
+                document.getElementById('card-editor-tab').classList.add('hidden');
+            } else {
+                document.getElementById('overview-tab').classList.add('hidden');
+                document.getElementById('customize-tab').classList.add('hidden');
+                document.getElementById('card-editor-tab').classList.remove('hidden');
+            }
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+
+        async function loadServerStats() {
+            const response = await fetch('/get_server_stats');
+            const data = await response.json();
+            const colors = getChartColors();
+
+            document.getElementById('total-messages').textContent = data.overview.total_messages.toLocaleString();
+            document.getElementById('total-reactions').textContent = data.overview.total_reactions.toLocaleString();
+            document.getElementById('total-voice-time').textContent = formatDuration(data.overview.total_voice_time);
+            document.getElementById('active-users').textContent = data.overview.active_users.toLocaleString();
+
+            if (activityChart) activityChart.destroy();
+            const activityCtx = document.getElementById('activity-chart').getContext('2d');
+            activityChart = new Chart(activityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Messages', 'Reactions', 'Voice (hours)', 'Stream (hours)', 'Deafen (hours)'],
+                    datasets: [{
+                        data: [
+                            data.overview.total_messages,
+                            data.overview.total_reactions,
+                            Math.round(data.overview.total_voice_time / 3600 * 10) / 10,
+                            Math.round(data.overview.total_stream_time / 3600 * 10) / 10,
+                            Math.round(data.overview.total_deafen_time / 3600 * 10) / 10
+                        ],
+                        backgroundColor: [
+                            'hsl(221, 83%, 53%)',
+                            'hsl(142, 71%, 45%)',
+                            'hsl(262, 83%, 58%)',
+                            'hsl(31, 97%, 44%)',
+                            'hsl(346, 87%, 43%)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: colors.background
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    cutout: '75%',
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            ...commonChartOptions.plugins.legend,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const label = context.label.split(' ')[0];
+                                    if (label === 'Messages' || label === 'Reactions') {
+                                        return `${label}: ${value.toLocaleString()}`;
+                                    } else {
+                                        return `${label}: ${value.toLocaleString()} hours`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update top users chart
+            if (usersChart) usersChart.destroy();
+            const usersCtx = document.getElementById('users-chart').getContext('2d');
+            
+            const userData = data.top_users.map(user => ({
+                username: user.username || `User ${user.user_id}`,
+                score: Math.round(user.activity_score),
+                details: {
+                    messages: user.messages_sent,
+                    reactions: user.reactions_added,
+                    voiceHours: Math.round(user.voice_time / 3600 * 10) / 10,
+                    streamHours: Math.round(user.stream_time / 3600 * 10) / 10
+                }
+            }));
+            
+            usersChart = new Chart(usersCtx, {
+                type: 'bar',
+                data: {
+                    labels: userData.map(user => user.username),
+                    datasets: [{
+                        label: 'Activity Score',
+                        data: userData.map(user => user.score),
+                        backgroundColor: 'hsl(221, 83%, 53%)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 20,
+                        maxBarThickness: 30
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const user = userData[context.dataIndex];
+                                    return [
+                                        `Activity Score: ${user.score}`,
+                                        `Messages: ${user.details.messages.toLocaleString()}`,
+                                        `Reactions: ${user.details.reactions.toLocaleString()}`,
+                                        `Voice Time: ${user.details.voiceHours}h`,
+                                        `Stream Time: ${user.details.streamHours}h`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update mentions chart
+            if (mentionsChart) mentionsChart.destroy();
+            const mentionsCtx = document.getElementById('mentions-chart').getContext('2d');
+            mentionsChart = new Chart(mentionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.mentions.map(mention => mention.display_name),
+                    datasets: [{
+                        label: 'Mentions',
+                        data: data.mentions.map(mention => mention.total_mentions),
+                        backgroundColor: 'hsl(262, 83%, 58%)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 20,
+                        maxBarThickness: 30
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            border: {
+                                display: false
+                            },
+                            grid: {
+                                color: colors.border,
+                                drawBorder: false,
+                                lineWidth: 0.5
+                            },
+                            ticks: {
+                                color: colors.mutedForeground,
+                                padding: 10,
+                                font: {
+                                    size: 12
+                                },
+                                stepSize: 1,
+                                callback: function(value) {
+                                    if (Math.floor(value) === value) {
+                                        return value;
+                                    }
+                                }
+                            }
+                        },
+                        x: {
+                            border: {
+                                display: false
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: colors.mutedForeground,
+                                padding: 10,
+                                font: {
+                                    size: 12
+                                },
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} mentions`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        async function selectServer(guildId) {
+            const response = await fetch('/select_guild', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ guild_id: guildId }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                const addBotButton = document.querySelector('a[href="{{ url_for("add_bot") }}"]');
+                const buttonText = addBotButton.querySelector('.animated-text-fill');
+                
+                const wasDisabled = addBotButton.classList.contains('btn-disabled');
+                const willBeDisabled = result.bot_in_server;
+                
+                if (wasDisabled !== willBeDisabled) {
+                    buttonText.classList.add('text-changing');
+
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    if (result.bot_in_server) {
+                        addBotButton.classList.add('btn-disabled');
+                        addBotButton.setAttribute('onclick', 'return false;');
+                        buttonText.setAttribute('data-text', 'Bot Already in Server');
+                        buttonText.textContent = 'Bot Already in Server';
+                    } else {
+                        addBotButton.classList.remove('btn-disabled');
+                        addBotButton.removeAttribute('onclick');
+                        buttonText.setAttribute('data-text', 'Add Bot');
+                        buttonText.textContent = 'Add Bot';
+                    }
+                    
+                    buttonText.classList.remove('text-changing');
+                    buttonText.classList.add('text-changed');
+                    
+                    setTimeout(() => {
+                        buttonText.classList.remove('text-changed');
+                    }, 300);
+                }
+                
+                loadServerStats();
+                loadDefaults(); 
+                loadCardSettings();  
+            } else {
+                alert('Failed to select server.');
+            }
+        }
+
+        async function loadDefaults() {
+            try {
+                const response = await fetch('/get_default_traits');
+                const traits = await response.json();
+                
+                const traitType = document.getElementById('trait-type').value;
+                const traitSelect = document.getElementById('trait-name');
+                traitSelect.innerHTML = '';  
+                
+                const selectedTraits = traits[traitType] || {};
+                
+                Object.entries(selectedTraits).forEach(([name, thresholds]) => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    traitSelect.appendChild(option);
+                });
+
+                if (traitSelect.options.length > 0) {
+                    traitSelect.dispatchEvent(new Event('change'));
+                }
+            } catch (error) {
+                console.error('Error loading traits:', error);
+                showToast('Failed to load traits', 'error');
+            }
+        }
+
+        document.getElementById('trait-type').addEventListener('change', loadDefaults);
+
+        const traitDescriptions = {
+            primary: {
+                "The Yapper": "A chatterbox who sends 80% more messages than the server average and has sent over 1,000 messages",
+                "The Reactor": "The emoji enthusiast with over 500 reactions given or received",
+                "Touch Grass": "Spends 80% more time in voice channels than average with over 200 minutes of voice time",
+                "The Performer": "A streaming star who has streamed for over 50 minutes",
+                "The Lone Wolf": "Spends 80% of their voice time deafened with at least 100 minutes in voice",
+                "The Lurker": "Below average in both messages and voice activity, preferring to watch from the shadows",
+                "The Ghost": "Barely visible with minimal activity - under 50 messages and 10 minutes in voice",
+                "The Silent Observer": "Present but quiet - between 100 messages and 50 minutes in voice",
+                "The Reactive": "More likely to react than talk - 200 messages and 300 reactions",
+                "The Voice Only": "Prefers voice over text - 100 messages but 150 minutes in voice",
+                "The Deafen Master": "90% of their voice time is spent deafened with over 150 minutes deafened",
+                "The Stream Sniper": "Joins voice mainly for streams - 10 streams watched and 100 minutes in voice"
+            },
+            secondary: {
+                "Chatty": "A frequent texter with over 1,000 messages sent",
+                "Regular Chatter": "Consistently active with over 500 messages",
+                "Casual Chatter": "Maintains a steady presence with over 100 messages",
+                "Occasional Speaker": "Makes their presence known with at least 1 message",
+                "Very Expressive": "An emoji master with over 500 reactions",
+                "Reactive": "Quick to react with over 200 reactions",
+                "Reserved": "Selective with reactions, at least 50 given",
+                "Very Social": "A voice chat regular with over 200 minutes",
+                "Social": "Enjoys voice chat with over 100 minutes",
+                "Occasional Visitor": "Drops by voice chat occasionally with 20+ minutes",
+                "Content Creator": "A dedicated streamer with over 100 minutes",
+                "Stream Enthusiast": "Enjoys streaming with 50+ minutes",
+                "Casual Streamer": "Tries streaming occasionally with 10+ minutes",
+                "Solo Player": "Prefers to be deafened 80% of the time",
+                "Sometimes Social": "Balances between being deafened and listening",
+                "Always Listening": "Rarely deafens, staying engaged",
+                "Wallflower": "Minimal activity in both text and voice",
+                "Silent Type": "Prefers to keep a low profile in text channels"
+            }
+        };
+        
+        document.getElementById('trait-name').addEventListener('change', function() {
+            const traitType = document.getElementById('trait-type').value;
+            const traitName = this.value;
+            
+            fetch('/get_default_traits')
+                .then(response => response.json())
+                .then(traits => {
+                    const selectedTrait = traits[traitType][traitName];
+                    if (selectedTrait) {
+                        // Use the description from the trait data if available, otherwise fall back to traitDescriptions
+                        const description = selectedTrait.description || traitDescriptions[traitType]?.[traitName] || "Custom trait";
+                        document.getElementById('trait-description').textContent = description;
+                        document.getElementById('trait-description-input').value = description;
+                        
+                        document.getElementById('new-name').value = traitName;  
+                        document.getElementById('message-ratio').value = selectedTrait.message_ratio || '';
+                        document.getElementById('message-threshold').value = selectedTrait.message_threshold || '';
+                        document.getElementById('reaction-threshold').value = selectedTrait.reaction_threshold || '';
+                        document.getElementById('voice-ratio').value = selectedTrait.voice_ratio || '';
+                        document.getElementById('voice-threshold').value = selectedTrait.voice_threshold || '';
+                        document.getElementById('stream-threshold').value = selectedTrait.stream_threshold || '';
+                        document.getElementById('deafen-ratio').value = selectedTrait.deafen_ratio || '';
+                        document.getElementById('deafen-threshold').value = selectedTrait.deafen_threshold || '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading trait details:', error);
+                    showToast('Failed to load trait details', 'error');
+                });
+        });
+
+        async function updateTrait() {
+            const thresholds = {
+                message_ratio: parseFloat(document.getElementById('message-ratio').value) || null,
+                message_threshold: parseInt(document.getElementById('message-threshold').value) || null,
+                reaction_threshold: parseInt(document.getElementById('reaction-threshold').value) || null,
+                voice_ratio: parseFloat(document.getElementById('voice-ratio').value) || null,
+                voice_threshold: parseInt(document.getElementById('voice-threshold').value) || null,
+                stream_threshold: parseInt(document.getElementById('stream-threshold').value) || null,
+                deafen_ratio: parseFloat(document.getElementById('deafen-ratio').value) || null,
+                deafen_threshold: parseInt(document.getElementById('deafen-threshold').value) || null
+            };
+
+            try {
+                const response = await fetch('/update_traits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        trait_type: document.getElementById('trait-type').value,
+                        trait_name: document.getElementById('trait-name').value,
+                        new_name: document.getElementById('new-name').value,
+                        description: document.getElementById('trait-description-input').value,
+                        thresholds: thresholds
+                    }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Trait updated successfully!', 'success');
+                    await loadDefaults();
+                } else {
+                    showToast(result.error || 'Failed to update trait', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating trait:', error);
+                showToast('Failed to update trait', 'error');
+            }
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'dark') {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
+
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else {
+            setTheme(prefersDark.matches ? 'dark' : 'light');
+        }
+
+        prefersDark.addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        document.getElementById('reset-traits').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to reset all traits to their default values? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/reset_traits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reset traits');
+                }
+
+                document.getElementById('new-name').value = '';
+                document.getElementById('message-ratio').value = '';
+                document.getElementById('message-threshold').value = '';
+                document.getElementById('reaction-threshold').value = '';
+                document.getElementById('voice-ratio').value = '';
+                document.getElementById('voice-threshold').value = '';
+                document.getElementById('stream-threshold').value = '';
+                document.getElementById('deafen-ratio').value = '';
+                document.getElementById('deafen-threshold').value = '';
+
+                await loadDefaults();
+                showToast('Traits have been reset to default values', 'success');
+            } catch (error) {
+                console.error('Error resetting traits:', error);
+                showToast('Failed to reset traits', 'error');
+            }
+        });
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastExit 0.2s ease forwards';
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 200);
+            }, 3000);
+        }
+
+        function toggleCreateForm(show) {
+            const form = document.getElementById('create-trait-form');
+            if (show) {
+                form.classList.remove('hidden');
+                document.getElementById('new-trait-name').value = '';
+                document.getElementById('new-message-ratio').value = '';
+                document.getElementById('new-message-threshold').value = '';
+                document.getElementById('new-reaction-threshold').value = '';
+                document.getElementById('new-voice-ratio').value = '';
+                document.getElementById('new-voice-threshold').value = '';
+                document.getElementById('new-stream-threshold').value = '';
+                document.getElementById('new-deafen-ratio').value = '';
+                document.getElementById('new-deafen-threshold').value = '';
+            } else {
+                form.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('create-trait').addEventListener('click', () => {
+            toggleCreateForm(true);
+        });
+
+        async function createTrait() {
+            const thresholds = {
+                message_ratio: parseFloat(document.getElementById('new-message-ratio').value) || null,
+                message_threshold: parseInt(document.getElementById('new-message-threshold').value) || null,
+                reaction_threshold: parseInt(document.getElementById('new-reaction-threshold').value) || null,
+                voice_ratio: parseFloat(document.getElementById('new-voice-ratio').value) || null,
+                voice_threshold: parseInt(document.getElementById('new-voice-threshold').value) || null,
+                stream_threshold: parseInt(document.getElementById('new-stream-threshold').value) || null,
+                deafen_ratio: parseFloat(document.getElementById('new-deafen-ratio').value) || null,
+                deafen_threshold: parseInt(document.getElementById('new-deafen-threshold').value) || null
+            };
+
+            try {
+                const response = await fetch('/create_trait', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        trait_type: document.getElementById('new-trait-type').value,
+                        trait_name: document.getElementById('new-trait-name').value,
+                        description: document.getElementById('new-trait-description').value,
+                        thresholds: thresholds
+                    }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast('New trait created successfully!', 'success');
+                    toggleCreateForm(false);
+                    await loadDefaults();
+                } else {
+                    showToast(result.error || 'Failed to create trait', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating trait:', error);
+                showToast('Failed to create trait', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            function updateRangeProgress(input) {
+                const min = input.min || 0;
+                const max = input.max || 100;
+                const value = input.value;
+                const percentage = ((value - min) / (max - min)) * 100;
+                input.style.setProperty('--range-progress', `${percentage}%`);
+            }
+
+            const animationSpeedInput = document.getElementById('animation-speed');
+            const animationSpeedValue = document.getElementById('animation-speed-value');
+            updateRangeProgress(animationSpeedInput);
+            animationSpeedInput.addEventListener('input', (e) => {
+                animationSpeedValue.textContent = `${e.target.value}x`;
+                updateRangeProgress(e.target);
+            });
+
+            const waveIntensityInput = document.getElementById('wave-intensity');
+            const waveIntensityValue = document.getElementById('wave-intensity-value');
+            updateRangeProgress(waveIntensityInput);
+            waveIntensityInput.addEventListener('input', (e) => {
+                waveIntensityValue.textContent = `${Math.round(e.target.value * 100)}%`;
+                updateRangeProgress(e.target);
+            });
+
+            const fontSizeInput = document.getElementById('font-size');
+            const fontSizeValue = document.getElementById('font-size-value');
+            updateRangeProgress(fontSizeInput);
+            fontSizeInput.addEventListener('input', (e) => {
+                fontSizeValue.textContent = `${e.target.value}px`;
+                updateRangeProgress(e.target);
+            });
+
+            const colorPaletteSelect = document.getElementById('color-palette');
+            const useIndividualColorsCheckbox = document.getElementById('use-individual-colors');
+            const statColorGroups = document.querySelectorAll('.stat-color-group');
+            
+            colorPaletteSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    useIndividualColorsCheckbox.checked = true;
+                    toggleIndividualColors(true);
+                } else {
+                    useIndividualColorsCheckbox.checked = false;
+                    toggleIndividualColors(false);
+                    updateStatColors(COLOR_PALETTES[e.target.value]);
+                }
+                updatePreview();
+            });
+            
+            useIndividualColorsCheckbox.addEventListener('change', (e) => {
+                toggleIndividualColors(e.target.checked);
+                if (e.target.checked) {
+                    colorPaletteSelect.value = 'custom';
+                }
+                updatePreview();
+            });
+
+            const textColorInput = document.getElementById('text-color');
+            const textColorHexInput = document.getElementById('text-color-hex');
+            
+            textColorInput.addEventListener('input', (e) => {
+                textColorHexInput.value = e.target.value.toUpperCase();
+                cardEditorState.textColor = e.target.value;
+                debouncedUpdatePreview();
+            });
+            
+            textColorHexInput.addEventListener('input', (e) => {
+                let value = e.target.value;
+                if (value.startsWith('#')) {
+                    value = value.slice(1);
+                }
+                if (/^[0-9A-Fa-f]{6}$/.test(value)) {
+                    const color = '#' + value;
+                    textColorInput.value = color;
+                    cardEditorState.textColor = color;
+                    debouncedUpdatePreview();
+                }
+            });
+
+            const colorInputs = document.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                input.addEventListener('mouseover', () => {
+                    input.style.transform = 'scale(1.05)';
+                    input.style.transition = 'transform 0.2s ease';
+                });
+                input.addEventListener('mouseout', () => {
+                    input.style.transform = 'scale(1)';
+                });
+            });
+        });
+
+        function toggleIndividualColors(enabled) {
+            cardEditorState.useIndividualColors = enabled;
+            const statColorGroups = document.querySelectorAll('.stat-color-group');
+            const statColorInputs = document.querySelectorAll('.stat-color');
+            
+            statColorGroups.forEach(group => {
+                group.style.opacity = enabled ? '1' : '0.5';
+                group.style.transition = 'opacity 0.3s ease';
+            });
+            
+            statColorInputs.forEach(input => {
+                input.disabled = !enabled;
+                input.style.cursor = enabled ? 'pointer' : 'not-allowed';
+            });
+        }
+
+        function updateStatColors(palette) {
+            const statColorInputs = document.querySelectorAll('.stat-color');
+            
+            statColorInputs.forEach(input => {
+                const statType = input.dataset.stat;
+                input.value = palette[statType];
+                cardEditorState.statColors[statType] = palette[statType];
+                
+                input.style.transition = 'background-color 0.3s ease';
+            });
+        }
+
+        async function loadCardSettings() {
+            try {
+                const response = await fetch('/api/get-card-settings');
+                const settings = await response.json();
+                
+                document.getElementById('color-palette').value = settings.colorPalette;
+                document.getElementById('use-individual-colors').checked = settings.useIndividualColors;
+                document.getElementById('text-color').value = settings.textColor;
+                document.getElementById('text-color-hex').value = settings.textColor;
+                document.getElementById('animation-speed').value = settings.animationSpeed;
+                document.getElementById('wave-intensity').value = settings.waveIntensity;
+                document.getElementById('font-size').value = settings.fontSize;
+                
+                if (settings.useIndividualColors && settings.statColors) {
+                    Object.entries(settings.statColors).forEach(([stat, color]) => {
+                        const input = document.querySelector(`.stat-color[data-stat="${stat}"]`);
+                        if (input) {
+                            input.value = color;
+                        }
+                    });
+                }
+
+                toggleIndividualColors(settings.useIndividualColors);
+                
+                document.getElementById('animation-speed-value').textContent = `${settings.animationSpeed}x`;
+                document.getElementById('wave-intensity-value').textContent = `${Math.round(settings.waveIntensity * 100)}%`;
+                document.getElementById('font-size-value').textContent = `${settings.fontSize}px`;
+                
+                updateRangeProgress(document.getElementById('animation-speed'));
+                updateRangeProgress(document.getElementById('wave-intensity'));
+                updateRangeProgress(document.getElementById('font-size'));
+                
+                cardEditorState = {
+                    ...cardEditorState,
+                    colorPalette: settings.colorPalette,
+                    useIndividualColors: settings.useIndividualColors,
+                    statColors: settings.statColors || {},
+                    textColor: settings.textColor,
+                    animationSpeed: settings.animationSpeed,
+                    waveIntensity: settings.waveIntensity,
+                    fontSize: settings.fontSize
+                };
+                
+                await updatePreview();
+            } catch (error) {
+                console.error('Error loading card settings:', error);
+                showToast('Failed to load card settings', 'error');
+            }
+        }
+
+        function updateRangeProgress(input) {
+            const min = input.min || 0;
+            const max = input.max || 100;
+            const value = input.value;
+            const percentage = ((value - min) / (max - min)) * 100;
+            input.style.setProperty('--range-progress', `${percentage}%`);
+        }
+
+        window.onload = () => {
+            loadServerStats();
+            loadDefaults();
+            loadCardSettings();  
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Wrapped - Your Year in Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Modern shadcn-inspired UI */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 0.75rem;
+        }
+
+        [data-theme="dark"] {
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 240 10% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 240 5.9% 10%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --input: 240 3.7% 15.9%;
+            --ring: 240 4.9% 83.9%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .card {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.15);
+        }
+
+        .btn-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .feature-card {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.15);
+        }
+
+        /* Modern background effect */
+        .background-effect {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-color: hsl(var(--background));
+            overflow: hidden;
+        }
+
+        .grid-background {
+            position: absolute;
+            inset: -100%;
+            background-image: radial-gradient(circle at center,
+                rgba(255, 255, 255, 0.08) 1.5px,
+                transparent 1.5px
+            );
+            background-size: 35px 35px;
+            animation: gridWave 15s linear infinite;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        @keyframes gridWave {
+            0% {
+                transform: 
+                    rotate3d(1, 0, 1, 0deg)
+                    translate3d(0, 0, 0);
+            }
+            25% {
+                transform: 
+                    rotate3d(1, 0, 1, 0.5deg)
+                    translate3d(5px, -5px, 10px);
+            }
+            50% {
+                transform: 
+                    rotate3d(1, 0, 1, 0deg)
+                    translate3d(0, 0, 0);
+            }
+            75% {
+                transform: 
+                    rotate3d(1, 0, 1, -0.5deg)
+                    translate3d(-5px, 5px, 10px);
+            }
+            100% {
+                transform: 
+                    rotate3d(1, 0, 1, 0deg)
+                    translate3d(0, 0, 0);
+            }
+        }
+
+        /* Neon header effect */
+        .neon-header {
+            color: white;
+            text-shadow: 
+                0 0 7px rgba(255,255,255,0.3),
+                0 0 10px rgba(255,255,255,0.2),
+                0 0 21px rgba(255,255,255,0.1);
+            animation: flicker 5s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+                opacity: 0.99;
+                text-shadow: 
+                    0 0 7px rgba(255,255,255,0.3),
+                    0 0 10px rgba(255,255,255,0.2),
+                    0 0 21px rgba(255,255,255,0.1);
+            }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+                opacity: 0.4;
+                text-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#1a1b1e]">
+    <div class="background-effect">
+        <div class="grid-background"></div>
+    </div>
+
+    <main class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-4xl mx-auto w-full mt-32">
+            <!-- Main content -->
+            <div class="text-center space-y-6 mb-16">
+                <h1 class="text-6xl md:text-7xl font-bold neon-header mb-4">Discord Wrapped</h1>
+                <p class="text-xl text-muted-foreground max-w-2xl mx-auto">Your server's year in review, Spotify Wrapped style.</p>
+            </div>
+
+            <!-- Login section -->
+            <div class="space-y-8">
+                <div class="card p-8 space-y-6 bg-black/20 backdrop-blur-sm">
+                    <div class="space-y-4">
+                        <h2 class="text-2xl font-semibold text-card-foreground">Connect Your Server</h2>
+                        <p class="text-muted-foreground">Get detailed analytics and beautiful visualizations for your Discord community.</p>
+                        
+                        <a href="{{ url_for('discord_login') }}" class="btn-primary w-full py-4 px-6 rounded-lg flex items-center justify-center space-x-3 text-lg font-medium">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/>
+                            </svg>
+                            <span>Continue with Discord</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="feature-card p-6 bg-black/20 backdrop-blur-sm">
+                        <h3 class="text-lg font-semibold mb-2 text-card-foreground">Activity Insights</h3>
+                        <p class="text-muted-foreground">Track message activity, reactions, and voice channel usage.</p>
+                    </div>
+                    <div class="feature-card p-6 bg-black/20 backdrop-blur-sm">
+                        <h3 class="text-lg font-semibold mb-2 text-card-foreground">Community Stats</h3>
+                        <p class="text-muted-foreground">See who's most active and how your community interacts.</p>
+                    </div>
+                    <div class="feature-card p-6 bg-black/20 backdrop-blur-sm">
+                        <h3 class="text-lg font-semibold mb-2 text-card-foreground">Beautiful Cards</h3>
+                        <p class="text-muted-foreground">Share your server's stats with customizable, animated cards.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How it works section -->
+            <div class="space-y-6 pt-16 mt-16 border-t border-white/10">
+                <h2 class="text-xl font-medium text-center text-card-foreground">How it Works</h2>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+                    <!-- Connection line -->
+                    <div class="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-y-1/2"></div>
+                    
+                    <!-- Step 1: Bot Joins -->
+                    <div class="relative h-full">
+                        <div class="card p-4 bg-black/20 backdrop-blur-sm text-center h-full flex flex-col">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#5865F2]/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-medium mb-2 flex-shrink-0">1. Add the Bot</h3>
+                            <p class="text-sm text-muted-foreground flex-grow">Start by adding the Discord Wrapped to your server.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Users Opt In -->
+                    <div class="relative h-full">
+                        <div class="card p-4 bg-black/20 backdrop-blur-sm text-center h-full flex flex-col">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#5865F2]/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-medium mb-2 flex-shrink-0">2. Member Opt-in</h3>
+                            <p class="text-sm text-muted-foreground flex-grow">Members use the /optin command to participate. Only opted-in members will have their activity tracked.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Track Metrics -->
+                    <div class="relative h-full">
+                        <div class="card p-4 bg-black/20 backdrop-blur-sm text-center h-full flex flex-col">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#5865F2]/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-medium mb-2 flex-shrink-0">3. Data Collection</h3>
+                            <p class="text-sm text-muted-foreground flex-grow">In order to produce individual wrapped reports, the bot tracks message activity, reactions, voice time, and more from opted-in members.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Customize -->
+                    <div class="relative h-full">
+                        <div class="card p-4 bg-black/20 backdrop-blur-sm text-center h-full flex flex-col">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#5865F2]/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-medium mb-2 flex-shrink-0">4. Personalize</h3>
+                            <p class="text-sm text-muted-foreground flex-grow">In the dashboard, admins can customize personality traits, rename default ones, and customize card designs.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Release Wrapped -->
+                    <div class="relative h-full">
+                        <div class="card p-4 bg-black/20 backdrop-blur-sm text-center h-full flex flex-col">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#5865F2]/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-medium mb-2 flex-shrink-0">5. Generate Wrapped</h3>
+                            <p class="text-sm text-muted-foreground flex-grow">Your Discord Wrapped is sent via DM to opted-in members. Admins can release it anytime using /wrap or the dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mouse movement effect with enhanced magnetic effect
+        document.addEventListener('mousemove', (e) => {
+            const grid = document.querySelector('.grid-background');
+            
+            // Add stronger grid distortion and scale effect
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.02;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.02;
+            
+            // Create a stronger scale effect that follows the mouse
+            const scaleX = (e.clientX / window.innerWidth - 0.5) * 2;
+            const scaleY = (e.clientY / window.innerHeight - 0.5) * 2;
+            const scale = Math.min(Math.abs(scaleX) + Math.abs(scaleY), 1) * 0.2 + 1;
+            
+            grid.style.transform = `
+                rotate3d(${moveY}, ${moveX}, 1, ${Math.sqrt(moveX * moveX + moveY * moveY)}deg)
+                translate3d(${moveX * 4}px, ${moveY * 4}px, 0)
+                scale(${scale})
+            `;
+        });
+
+        // Reset when mouse leaves
+        document.addEventListener('mouseleave', () => {
+            const grid = document.querySelector('.grid-background');
+            grid.style.transform = 'none';
+        });
+    </script>
+</body>
+</html> 

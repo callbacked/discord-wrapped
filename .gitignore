@@ -1,0 +1,10 @@
+/__pycache__
+/wrapped
+/fonts
+/icons
+/database
+.env
+*.db
+.DS_Store
+*.log
+migrate_db.py
