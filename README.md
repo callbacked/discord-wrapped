@@ -1,12 +1,14 @@
 # Discord Wrapped
 
 Discord Wrapped is a bot that generates personalized activity summaries for Discord users, similar to Spotify Wrapped. It analyzes user activity and creates beautiful visualizations of their Discord usage patterns.
-![enter image description here](https://raw.githubusercontent.com/callbacked/discord-wrapped/refs/heads/main/screenshots/showcase.png)
-## Features
 
 - Web dashboard for viewing statistics and customizable cards
 - Customizable personality traits
 - Can support multiple servers with its own individual settings
+
+![main](https://raw.githubusercontent.com/callbacked/discord-wrapped/refs/heads/main/screenshots/showcase.png)
+![cards](https://github.com/callbacked/discord-wrapped/blob/main/screenshots/cards_showcase.png?raw=true)
+![summary](https://github.com/callbacked/discord-wrapped/blob/main/screenshots/summary_card.png?raw=true)
 
 ## Prerequisites
 
@@ -81,7 +83,7 @@ Discord Wrapped is a bot that generates personalized activity summaries for Disc
 
 ## License
 
-This project is licensed under the MIT License (do what you want honestly) - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License (do what you want honestly)
 
 ## Disclaimer
 
@@ -89,5 +91,3 @@ This is a self-hosted bot. You are responsible for:
 - Hosting and maintaining your own instance
 - Securing your bot token and other credentials
 - Complying with Discord's Terms of Service and Developer Terms
-- Managing your own data storage and backups
-- Ensuring compliance with data protection regulations in your jurisdiction 
