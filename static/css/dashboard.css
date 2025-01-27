@@ -1,0 +1,527 @@
+:root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.75rem;
+    --button-text-fill: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
+.navbar {
+    background-color: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
+    backdrop-filter: blur(12px);
+}
+
+.card {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.8s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.15);
+}
+
+.card:hover::after {
+    transform: translateX(100%);
+}
+
+.input-field {
+    background-color: transparent;
+    border: 1px solid hsl(var(--input));
+    border-radius: var(--radius);
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.tab-button {
+    background-color: transparent;
+    border-radius: var(--radius);
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+}
+
+.tab-button.active {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+}
+
+.theme-toggle {
+    background-color: hsl(var(--secondary));
+    border-radius: var(--radius);
+    color: hsl(var(--secondary-foreground));
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.2);
+    color: hsl(var(--foreground));
+    max-width: 24rem;
+    padding: 0.75rem 1rem;
+    transform-origin: bottom right;
+    animation: toastEnter 0.2s ease forwards;
+}
+
+.toast.success {
+    border-left: 4px solid hsl(142.1 76.2% 36.3%);
+}
+
+.toast.error {
+    border-left: 4px solid hsl(346.8 77.2% 49.8%);
+}
+
+@keyframes toastEnter {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toastExit {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%) scale(0.8);
+    }
+}
+
+.animated-text-fill {
+    position: relative;
+    background-clip: text;
+    -webkit-background-clip: text;
+    transition: color var(--button-text-fill);
+}
+
+.animated-text-fill::before {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    overflow: hidden;
+    transition: width var(--button-text-fill);
+    white-space: nowrap;
+}
+
+.animated-text-fill:hover::before {
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary .animated-text-fill::before {
+    color: hsl(var(--accent));
+}
+.btn-primary .animated-text-fill:hover {
+    color: transparent;
+}
+
+.btn-white {
+    background-color: white;
+    color: hsl(240 10% 3.9%); 
+    position: relative;
+    overflow: hidden;
+}
+.btn-white .animated-text-fill::before {
+    color: hsl(240 3.8% 46.1%); 
+    font-weight: 500;
+}
+.btn-white .animated-text-fill:hover {
+    color: transparent;
+}
+
+.btn-white:hover {
+    background-color: white !important;
+}
+
+.btn-secondary {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    position: relative;
+    overflow: hidden;
+}
+.btn-secondary .animated-text-fill::before {
+    color: hsl(240 3.8% 46.1%);
+    font-weight: 500;
+}
+.btn-secondary .animated-text-fill:hover {
+    color: transparent;
+}
+
+.btn-secondary:hover {
+    background-color: hsl(var(--secondary)) !important;
+}
+
+.btn-destructive {
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+    position: relative;
+    overflow: hidden;
+}
+.btn-destructive .animated-text-fill::before {
+    color: hsl(240 3.8% 46.1%); 
+    font-weight: 500;
+}
+.btn-destructive .animated-text-fill:hover {
+    color: transparent;
+}
+
+.btn-destructive:hover {
+    background-color: hsl(var(--destructive)) !important;
+}
+
+.glow-text {
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.2),
+                 0 0 20px hsl(var(--primary) / 0.1),
+                 0 0 30px hsl(var(--primary) / 0.05);
+    transition: text-shadow 0.3s ease;
+}
+
+.glow-text-blue {
+    color: hsl(221 83% 53%);
+    text-shadow: 0 0 10px hsl(221 83% 53% / 0.2),
+                 0 0 20px hsl(221 83% 53% / 0.1),
+                 0 0 30px hsl(221 83% 53% / 0.05);
+}
+
+.glow-text-green {
+    color: hsl(142 71% 45%);
+    text-shadow: 0 0 10px hsl(142 71% 45% / 0.2),
+                 0 0 20px hsl(142 71% 45% / 0.1),
+                 0 0 30px hsl(142 71% 45% / 0.05);
+}
+
+.glow-text-purple {
+    color: hsl(262 83% 58%);
+    text-shadow: 0 0 10px hsl(262 83% 58% / 0.2),
+                 0 0 20px hsl(262 83% 58% / 0.1),
+                 0 0 30px hsl(262 83% 58% / 0.05);
+}
+
+.glow-text-orange {
+    color: hsl(31 97% 44%);
+    text-shadow: 0 0 10px hsl(31 97% 44% / 0.2),
+                 0 0 20px hsl(31 97% 44% / 0.1),
+                 0 0 30px hsl(31 97% 44% / 0.05);
+}
+
+.min-h-screen {
+    position: relative;
+    isolation: isolate;
+}
+
+.min-h-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        radial-gradient(circle at center, transparent 30%, hsl(var(--background))),
+        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 11px),
+        repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 11px);
+    background-size: 100% 100%, 16px 16px, 16px 16px;
+    animation: patternMove 30s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+@keyframes patternMove {
+    from {
+        background-position: center, 0 0, 0 0;
+    }
+    to {
+        background-position: center, 32px 32px, 32px 32px;
+    }
+}
+
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+.input-field:hover {
+    border-color: hsl(var(--ring) / 0.5);
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    min-width: 100px; 
+    width: auto;
+}
+
+.btn-disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    transform: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 180px; 
+}
+
+@keyframes slideOutUp {
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.text-changing {
+    animation: slideOutUp 0.3s forwards;
+}
+
+.text-changed {
+    animation: slideInDown 0.3s forwards;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: hsl(var(--secondary));
+    border-radius: 6px;
+    outline: none;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px hsl(var(--primary));
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px hsl(var(--primary));
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    transform: scale(1.1);
+    background: hsl(var(--primary));
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+    transform: scale(1.1);
+    background: hsl(var(--primary));
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(0.9);
+}
+
+input[type="range"]:active::-moz-range-thumb {
+    transform: scale(0.9);
+}
+
+input[type="range"] {
+    background: linear-gradient(
+        to right,
+        hsl(var(--primary)) var(--range-progress, 0%),
+        hsl(var(--secondary)) var(--range-progress, 0%)
+    );
+}
+
+input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+}
+
+.stat-color-group input[type="color"] {
+    height: 38px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    transition: all 0.2s ease;
+}
+
+.stat-color-group input[type="color"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.1);
+}
+
+.stat-color-group input[type="color"]:active {
+    transform: translateY(0);
+}
+
+.text-color-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.text-color-container input[type="color"] {
+    height: 38px;
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.text-color-container input[type="text"] {
+    flex: 1;
+    height: 38px;
+} 

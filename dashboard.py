@@ -173,8 +173,9 @@ def get_default_traits():
             **thresholds,
             'description': trait['description']
         }
-
-    logging.info(f"Returning traits: {traits}")  
+    
+    logging.info(f"Returning traits: {traits}")
+    return jsonify(traits)
 
 @app.route('/update_traits', methods=['POST'])
 def update_traits():
